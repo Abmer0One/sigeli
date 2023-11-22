@@ -1,0 +1,382 @@
+como usar o provider no flutter, demonstrando com CRUD e usando a arquitectura MVC.
+
+Para usar o Provider no Flutter com a arquitetura MVC e implementar um CRUD (Create, Read, Update, Delete), você pode seguir os seguintes passos:
+
+    Crie uma classe modelo para representar os dados que você deseja armazenar. Por exemplo, se você estiver criando um aplicativo de lista de tarefas, poderá criar uma classe Task para representar cada tarefa.
+
+dart
+
+class Task {
+  int id;
+  String title;
+  bool completed;
+  
+  Task({required this.id, required this.title, this.completed = false});
+}
+
+    Crie uma classe Controller para gerenciar as operações de CRUD na classe modelo. Por exemplo, se você estiver criando um aplicativo de lista de tarefas, poderá criar uma classe TaskController para gerenciar as operações em tarefas.
+
+dart
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'task.dart';
+
+class TaskController {
+  List<Task> _tasks = [];
+
+  void addTask(BuildContext context, Task task) {
+    Provider.of<TaskProvider>(context, listen: false).addTask(task);
+  }
+
+  void deleteTask(BuildContext context, Task task) {
+    Provider.of<TaskProvider>(context, listen: false).deleteTask(task);
+  }
+
+  void updateTask(BuildContext context, Task task) {
+    Provider.of<TaskProvider>(context, listen: false).updateTask(task);
+  }
+
+  List<Task> getTasks(BuildContext context) {
+    return Provider.of<TaskProvider>(context).tasks;
+  }
+}
+
+    Crie uma classe Provider para fornecer a lista de objetos da classe modelo. Por exemplo, se você estiver criando um aplicativo de lista de tarefas, poderá criar uma classe TaskProvider para fornecer a lista de tarefas.
+
+dart
+
+import 'package:flutter/material.dart';
+import 'task.dart';
+
+class TaskProvider extends ChangeNotifier {
+  List<Task> _tasks = [];
+
+  List<Task> get tasks => _tasks;
+
+  void addTask(Task task) {
+    _tasks.add(task);
+    notifyListeners();
+  }
+
+  void deleteTask(Task task) {
+    _tasks.remove(task);
+    notifyListeners();
+  }
+
+  void updateTask(Task task) {
+    int index = _tasks.indexWhere((t) => t.id == task.id);
+    _tasks[index] = task;
+    notifyListeners();
+  }
+}
+
+    No seu widget que exibe a lista de tarefas, adicione um Consumer para obter a lista de tarefas do TaskProvider e exibi-la.
+
+dart
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'task.dart';
+import 'task_controller.dart';
+
+class TaskListWidget extends StatelessWidget {
+  final TaskController _controller = TaskController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<TaskProvider>(
+      builder: (context, provider, child) {
+        List<Task> tasks = provider.tasks;
+        return ListView.builder(
+          itemCount: tasks.length,
+          itemBuilder: (context, index) {
+            Task task = tasks[index];
+            return ListTile(
+              title: Text(task.title),
+              leading: Checkbox(
+                value: task.completed,
+                onChanged: (value) {
+                  task.completed = value!;
+                  _controller.updateTask(context, task);
+                },
+              ),
+              trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  _controller.deleteTask(context, task);
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+    No seu widget que permite adicionar uma nova tarefa, adicione um
+
+
+
+
+    ////////////////////////////////////////////////////////////////////////
+
+
+    como usar o provider no flutter, demonstrando com CRUD e usando a arquitectura MVC.
+6 / 6
+
+Para usar o Provider no Flutter com a arquitetura MVC (Model-View-Controller) e implementar um CRUD (Create, Read, Update, Delete), você pode seguir os seguintes passos:
+
+    Adicione o pacote do Provider em seu arquivo pubspec.yaml:
+
+yaml
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.0.1
+
+    Crie a classe do modelo (Model) para representar os dados que serão manipulados. Por exemplo, se estivermos criando um aplicativo de lista de tarefas, poderíamos ter uma classe Task que contém os atributos id, title e completed.
+
+kotlin
+
+class Task {
+  final int id;
+  final String title;
+  final bool completed;
+
+  Task({required this.id, required this.title, required this.completed});
+}
+
+    Crie a classe do controlador (Controller) que será responsável por manipular os dados. Ele deve estender a classe ChangeNotifier do pacote Provider.
+
+scss
+
+class TaskController extends ChangeNotifier {
+  List<Task> _tasks = [];
+
+  List<Task> get tasks => _tasks;
+
+  void addTask(Task task) {
+    _tasks.add(task);
+    notifyListeners();
+  }
+
+  void updateTask(Task task) {
+    final index = _tasks.indexWhere((t) => t.id == task.id);
+    if (index >= 0) {
+      _tasks[index] = task;
+      notifyListeners();
+    }
+  }
+
+  void deleteTask(Task task) {
+    _tasks.removeWhere((t) => t.id == task.id);
+    notifyListeners();
+  }
+}
+
+    Na classe da View, você pode usar o Consumer do Provider para obter uma instância do TaskController. Aqui, a View é representada por um StatefulWidget chamado TaskListPage que exibe a lista de tarefas.
+
+less
+
+class TaskListPage extends StatefulWidget {
+  @override
+  _TaskListPageState createState() => _TaskListPageState();
+}
+
+class _TaskListPageState extends State<TaskListPage> {
+  final _taskController = TaskController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Task List'),
+      ),
+      body: Consumer<TaskController>(
+        builder: (context, controller, child) {
+          final tasks = controller.tasks;
+          return ListView.builder(
+            itemCount: tasks.length,
+            itemBuilder: (context, index) {
+              final task = tasks[index];
+              return ListTile(
+                title: Text(task.title),
+                trailing: Checkbox(
+                  value: task.completed,
+                  onChanged: (value) {
+                    final updatedTask = Task(
+                      id: task.id,
+                      title: task.title,
+                      completed: value ?? false,
+                    );
+                    controller.updateTask(updatedTask);
+                  },
+                ),
+                onLongPress: () {
+                  controller.deleteTask(task);
+                },
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddTaskPage()),
+          );
+        },
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+Observe que o TaskController é criado dentro da classe State do StatefulWidget. O Consumer é usado para ouvir as mudanças no TaskController e atualizar a UI sempre que houver uma mudança.
+
+    Para adicionar uma nova tarefa, crie uma nova tela de StatefulWidget chamada `AddTask
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    Para utilizar o Provider no Flutter com a arquitetura MVC e um CRUD, você precisa seguir alguns passos básicos:
+
+    Adicione a dependência do Provider ao seu arquivo pubspec.yaml:
+
+yaml
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.0.0
+
+    Crie o seu modelo (Model) de dados que representará as informações que você irá salvar e manipular no CRUD. Por exemplo:
+
+dart
+
+class Product {
+  final String id;
+  final String name;
+  final double price;
+
+  Product({required this.id, required this.name, required this.price});
+}
+
+    Crie o seu controlador (Controller) que será responsável por gerenciar as ações que o usuário irá realizar no CRUD. Por exemplo:
+
+dart
+
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
+
+import 'product.dart';
+
+class ProductController with ChangeNotifier {
+  final List<Product> _products = [];
+
+  List<Product> get products => _products;
+
+  void addProduct(String name, double price) {
+    final product = Product(id: DateTime.now().toString(), name: name, price: price);
+    _products.add(product);
+    notifyListeners();
+  }
+
+  void deleteProduct(String id) {
+    _products.removeWhere((product) => product.id == id);
+    notifyListeners();
+  }
+}
+
+    Crie a sua tela de visualização (View) que irá exibir os dados e interagir com o usuário. Por exemplo:
+
+dart
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'product_controller.dart';
+
+class ProductListScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Products')),
+      body: Consumer<ProductController>(
+        builder: (context, controller, child) {
+          return ListView.builder(
+            itemCount: controller.products.length,
+            itemBuilder: (context, index) {
+              final product = controller.products[index];
+              return ListTile(
+                title: Text(product.name),
+                subtitle: Text('\$${product.price.toStringAsFixed(2)}'),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    controller.deleteProduct(product.id);
+                  },
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              String name = '';
+              double price = 0.0;
+
+              return AlertDialog(
+                title: Text('Add Product'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(labelText: 'Name'),
+                      onChanged: (value) {
+                        name = value;
+                      },
+                    ),
+                    TextField(
+                      decoration: InputDecoration(labelText: 'Price'),
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (value) {
+                        price = double.parse(value);
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    child: Text('Cancel'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    child: Text('Save'),
+                    onPressed: () {
+                      Provider.of<ProductController>(context, listen: false).addProduct(name, price);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+    Por fim, crie o Provider no nível mais alto da sua árvore de widgets para que ele possa ser
